@@ -24,14 +24,14 @@ var (
 	collectorEndpoint = flag.String("collector.endpoint", "/collector", "Path under which to accept cloudmonitor data.")
 	accesslog         = flag.String("collector.accesslog", "", "Log incoming collector data to specified file.")
 	showVersion       = flag.Bool("version", false, "Show version information")
-	version           = "0.1.0"
+	version           = "0.1.1"
 )
 
 type Exporter struct {
 	sync.RWMutex
 	startTime                                                                                           time.Time
 	httpRequestsTotal, httpResponseSizeBytes, httpResponseContentTypes, parseErrors, originRetriesTotal *prometheus.CounterVec
-	httpDownloadTime                                                                                    *prometheus.SummaryVec
+	httpResponseLatency, httpOriginLatency                                                                 *prometheus.SummaryVec
 	exporterUptime, postSize                                                                            prometheus.Counter
 	postProcessingTime, logLatency                                                                      prometheus.Summary
 	logWriter                                                                                           *bufio.Writer
@@ -67,7 +67,7 @@ type PerformanceStruct struct {
 	OriginRetry       int     `json:"originRetry,string"`
 	LastMileRTT       string  `json:"lastMileRTT"`
 	MidMileLatency    string  `json:"midMileLatency"`
-	OriginLatency     string  `json:"netOriginLatency"`
+	OriginLatency     float64 `json:"netOriginLatency"`
 	LastMileBandwidth string  `json:"lastMileBW"`
 	CacheStatus       int     `json:"cacheStatus,string"`
 	FirstByte         string  `json:"firstByte"`
@@ -179,13 +179,21 @@ func NewExporter() *Exporter {
 				Name:      "http_response_content_types",
 				Help:      "Counter of response content types",
 			},
-			[]string{"host", "method", "status_code", "cache", "content_type"},
+			[]string{"host", "cache", "content_type"},
 		),
-		httpDownloadTime: prometheus.NewSummaryVec(
+		httpResponseLatency: prometheus.NewSummaryVec(
 			prometheus.SummaryOpts{
 				Namespace: *namespace,
 				Name:      "http_response_latency_milliseconds",
-				Help:      "Response latency in bytes",
+				Help:      "Response latency in milliseconds",
+			},
+			[]string{"host", "cache"},
+		),
+		httpOriginLatency: prometheus.NewSummaryVec(
+			prometheus.SummaryOpts{
+				Namespace: *namespace,
+				Name:      "http_origin_latency_milliseconds",
+				Help:      "Origin latency in milliseconds",
 			},
 			[]string{"host", "cache"},
 		),
@@ -244,7 +252,8 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.httpResponseContentTypes.Collect(ch)
 	e.originRetriesTotal.Collect(ch)
 	e.parseErrors.Collect(ch)
-	e.httpDownloadTime.Collect(ch)
+	e.httpResponseLatency.Collect(ch)
+	e.httpOriginLatency.Collect(ch)
 
 	ch <- e.exporterUptime
 	ch <- e.postProcessingTime
@@ -258,7 +267,8 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	e.httpResponseContentTypes.Describe(ch)
 	e.originRetriesTotal.Describe(ch)
 	e.parseErrors.Describe(ch)
-	e.httpDownloadTime.Describe(ch)
+	e.httpResponseLatency.Describe(ch)
+	e.httpOriginLatency.Describe(ch)
 
 	ch <- e.exporterUptime.Desc()
 	ch <- e.postProcessingTime.Desc()
@@ -325,8 +335,6 @@ func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
 		fmt.Fprintf(e.logWriter, logentry)
 	}
 
-	log.Printf(logentry)
-
 }
 
 func (e *Exporter) MillisecondsToTime(ms string) time.Time {
@@ -386,26 +394,25 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 			Add(cloudmonitorData.Message.ResLength)
 
 		e.httpResponseContentTypes.WithLabelValues(cloudmonitorData.Message.ReqHost,
-			cloudmonitorData.Message.ReqMethod,
-			string(cloudmonitorData.Message.ResStatus),
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
-			string(cloudmonitorData.Message.ResContentType)).
+			strings.ToLower(string(cloudmonitorData.Message.ResContentType))).
 			Inc()
 
-		e.httpDownloadTime.WithLabelValues(cloudmonitorData.Message.ReqHost,
+		e.httpResponseLatency.WithLabelValues(cloudmonitorData.Message.ReqHost,
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus)).
 			Observe(cloudmonitorData.Performance.DownloadTime)
+
+		e.httpOriginLatency.WithLabelValues(cloudmonitorData.Message.ReqHost,
+			e.GetCacheString(cloudmonitorData.Performance.CacheStatus)).
+			Observe(cloudmonitorData.Performance.OriginLatency)
 
 		latency := time.Since(e.MillisecondsToTime(cloudmonitorData.Start))
 		e.logLatency.Observe(latency.Seconds())
 
-		if cloudmonitorData.Performance.OriginRetry != 0 {
-			e.originRetriesTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
-				string(cloudmonitorData.Message.ResStatus),
-				cloudmonitorData.Message.Protocol).
-				Add(float64(cloudmonitorData.Performance.OriginRetry))
-		}
-
+		e.originRetriesTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
+			string(cloudmonitorData.Message.ResStatus),
+			cloudmonitorData.Message.Protocol).
+			Add(float64(cloudmonitorData.Performance.OriginRetry))
 	}
 
 	duration := time.Since(begin)
