@@ -67,7 +67,7 @@ type PerformanceStruct struct {
 	OriginRetry       int     `json:"originRetry,string"`
 	LastMileRTT       string  `json:"lastMileRTT"`
 	MidMileLatency    string  `json:"midMileLatency"`
-	OriginLatency     float64 `json:"netOriginLatency"`
+	OriginLatency     float64 `json:"netOriginLatency,string"`
 	LastMileBandwidth string  `json:"lastMileBW"`
 	CacheStatus       int     `json:"cacheStatus,string"`
 	FirstByte         string  `json:"firstByte"`
