@@ -26,18 +26,18 @@ Detailed information can be found [Here](https://control.akamai.com/dl/customers
 
 For example:
 
-![alt text](akamai_config.png "Akamai config")
+![alt text](docs/akamai_config.png "Akamai config")
 
 Then it's enough to add the following behavior to your properties.
 
-![alt text](akamai_behavior.png "Akamai behavior")
+![alt text](docs/akamai_behavior.png "Akamai behavior")
 
 When properties are active and data is retrieved we will be able to query prometheus.
 
-![alt text](prometheus.png "Prometheus")
+![alt text](docs/prometheus.png "Prometheus")
 
 An example of metrics used on grafana dashboard
-![alt text](grafana.png "Prometheus")
+![alt text](docs/grafana.png "Prometheus")
 
 
 
