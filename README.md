@@ -47,7 +47,7 @@ When properties are active and data is retrieved we will be able to query promet
 
 ## Grafana
 
-The following [Dashboard template](setup/grafana.json), can be found and imported into grafana.
+The following [Dashboard template](setup/grafana.json), can be imported into grafana.
 
 Example:
 
