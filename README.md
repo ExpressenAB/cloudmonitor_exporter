@@ -1,5 +1,6 @@
 # Cloudmonitor exporter
-A Prometheus exporter for gathering [Akamai Cloudmonitor](https://www.akamai.com/us/en/solutions/intelligent-platform/cloud-monitor.jsp) statistics.
+
+A Prometheus exporter that gathers [Akamai Cloudmonitor](https://www.akamai.com/us/en/solutions/intelligent-platform/cloud-monitor.jsp) statistics.
 
 Akamai Cloudmonitor aggregates client request/responses as JSON data and send them to cloudmonitor_exporter's `collector.endpoint`. Exporter will parse this and provide metrics on the `metrics.endpoint`.
 
@@ -24,28 +25,23 @@ Flag | Description | Default
 -collector.accesslog | File to store accesslogs to | "" off
 
 ## Docker-compose
+
 An basic stack with grafana including the template below/prometheus/haproxy/cloudmonitor_exporter can be executed with docker-compose. Instructions can be found  [Here](docs/docker-compose.md)
 
 ## Akamai setup
 
-Information about configuration of akamai propoerties, can be found [Here](docs/akamai.md)
+Information about configuration of akamai properties, can be found [Here](docs/akamai.md)
 
 ## Prometheus
 
-When properties are active and data is retrieved we will be able to query prometheus.
+When cloudmonitor properties/behaviors are active and data is retrieved we will be able to query prometheus.
 
 ![alt text](docs/prometheus.png "Prometheus")
 
 ## Grafana
 
-The following [Dashboard template](setup/grafana.json), can be imported into grafana.
+The following [Dashboard template](setup/grafana.json), can be imported into grafana to get an basic dashboard.
 
 Example:
 
 ![alt text](docs/grafana.png "Prometheus")
-
-
-
-
-
-
