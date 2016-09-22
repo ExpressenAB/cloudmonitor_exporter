@@ -1,7 +1,7 @@
 # Cloudmonitor exporter
-Prometheus exporter for [Akamai Cloudmonitor](https://www.akamai.com/us/en/solutions/intelligent-platform/cloud-monitor.jsp) statistics.
+A Prometheus exporter for gathering [Akamai Cloudmonitor](https://www.akamai.com/us/en/solutions/intelligent-platform/cloud-monitor.jsp) statistics.
 
-Akamai Cloudmonitor aggregates client request/responses as json data and send them to cloudmonitor_exporter's `collector.endpoint`. Exporter will parse this and provide metrics on the `metrics.endpoint`.
+Akamai Cloudmonitor aggregates client request/responses as JSON data and send them to cloudmonitor_exporter's `collector.endpoint`. Exporter will parse this and provide metrics on the `metrics.endpoint`.
 
 Detailed information about cloudmonitor can be found [Here](https://control.akamai.com/dl/customers/ALTA/Cloud-Monitor-Implementation.pdf)
 
@@ -24,20 +24,11 @@ Flag | Description | Default
 -collector.accesslog | File to store accesslogs to | "" off
 
 ## Docker-compose
-An basic stack with grafana/prometheus/haproxy/cloudmonitor_exporter can be executed with docker-compose. Instructions can be found  [Here](docs/docker-compose.md)
+An basic stack with grafana including the template below/prometheus/haproxy/cloudmonitor_exporter can be executed with docker-compose. Instructions can be found  [Here](docs/docker-compose.md)
 
 ## Akamai setup
 
-To be able to retrieve cloudmonitor data to the running exporter, you need to to create an cloudmonitor property, that other properties will send it's loglines to.
-
-An example of an cloudmonitor property can look like this:
-
-![alt text](docs/akamai_config.png "Akamai config")
-
-
-For every property you want to enable cloudmonitor on, just add cloudmonitor behavior with correct parameters.
-
-![alt text](docs/akamai_behavior.png "Akamai behavior")
+Information about configuration of akamai propoerties, can be found [Here](docs/akamai.md)
 
 ## Prometheus
 
