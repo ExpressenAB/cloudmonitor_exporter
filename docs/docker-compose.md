@@ -3,10 +3,11 @@
 Docker-compose can be used to setup an small stack with prometheus/grafana/haproxy/cloudmonitor_exporter.
 
 ## Instructions
-* Make sure docker-compose is installed ([instructions](https://docs.docker.com/compose/install/))
+* Make sure docker engine is installed ([instructions](https://docs.docker.com/engine/installation/))
+* Make sure docker compose is installed ([instructions](https://docs.docker.com/compose/install/))
 * Clone repository
 
-`git clone git@github.com:ExpressenAB/cloudmonitor_exporter.git`
+`git clone https://github.com/ExpressenAB/cloudmonitor_exporter.git`
 * Create self-signed certificate by running setup.sh
 ```
 > cd cloudmonitor_exporter/setup
