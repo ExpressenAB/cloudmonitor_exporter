@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/avct/user-agent-surfer"
 	"github.com/prometheus/client_golang/prometheus"
 	"io"
 	"log"
@@ -24,18 +25,18 @@ var (
 	collectorEndpoint = flag.String("collector.endpoint", "/collector", "Path under which to accept cloudmonitor data.")
 	accesslog         = flag.String("collector.accesslog", "", "Log incoming collector data to specified file.")
 	showVersion       = flag.Bool("version", false, "Show version information")
-	version           = "0.1.1"
+	version           = "0.1.2"
 )
 
 type Exporter struct {
 	sync.RWMutex
-	startTime                                                                                           time.Time
-	httpRequestsTotal, httpResponseSizeBytes, httpResponseContentTypes, parseErrors, originRetriesTotal *prometheus.CounterVec
-	httpResponseLatency, httpOriginLatency                                                                 *prometheus.SummaryVec
-	exporterUptime, postSize                                                                            prometheus.Counter
-	postProcessingTime, logLatency                                                                      prometheus.Summary
-	logWriter                                                                                           *bufio.Writer
-	writeAccesslog                                                                                      bool
+	startTime                                                                                                                                          time.Time
+	httpRequestsTotal, httpResponseSizeBytes, httpDeviceRequestsTotal, httpResponseContentTypes, httpGeoRequestsTotal, parseErrors, originRetriesTotal *prometheus.CounterVec
+	httpResponseLatency, httpOriginLatency                                                                                                             *prometheus.SummaryVec
+	exporterUptime, postSize                                                                                                                           prometheus.Counter
+	postProcessingTime, logLatency                                                                                                                     prometheus.Summary
+	logWriter                                                                                                                                          *bufio.Writer
+	writeAccesslog                                                                                                                                     bool
 }
 
 type CloudmonitorStruct struct {
@@ -50,13 +51,22 @@ type CloudmonitorStruct struct {
 	Response    ResponseStruct    `json:"resHdr"`
 	Performance PerformanceStruct `json:"netPerf"`
 	Network     NetworkStruct     `json:"network"`
+	Geo         GeoStruct         `json:"geo"`
+}
+
+type GeoStruct struct {
+	City      string `json:"city"`
+	Country   string `json:"country"`
+	Latitude  string `json:"lat"`
+	Longitude string `json:"long"`
+	Region    string `json:"region"`
 }
 
 type NetworkStruct struct {
 	ASNum       string `json:"asnum"`
 	Network     string `json:"network"`
 	NetworkType string `json:"networkType"`
-	EdgeIP      string `json:"edgeIP`
+	EdgeIP      string `json:"edgeIP"`
 }
 
 type PerformanceStruct struct {
@@ -75,7 +85,7 @@ type PerformanceStruct struct {
 	ASNum             string  `json:"asnum"`
 	Network           string  `json:"network"`
 	NetworkType       string  `json:"netType"`
-	EdgeIP            string  `json:"edgeIP`
+	EdgeIP            string  `json:"edgeIP"`
 }
 
 type MessageStruct struct {
@@ -94,7 +104,7 @@ type MessageStruct struct {
 	ResLocation     string  `json:"redirURL"`
 	ResContentType  string  `json:"respCT"`
 	ResLength       float64 `json:"respLen,string"`
-	ResBytes        string  `json:"bytes"`
+	ResBytes        float64 `json:"bytes,string"`
 	UserAgent       string  `json:"UA"`
 	ForwardHost     string  `json:"fwdHost`
 }
@@ -164,6 +174,22 @@ func NewExporter() *Exporter {
 				Help:      "Total number of processed loglines",
 			},
 			[]string{"host", "method", "status_code", "cache", "protocol"},
+		),
+		httpDeviceRequestsTotal: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Namespace: *namespace,
+				Name:      "http_device_requests_total",
+				Help:      "Total number of processed requests for devices",
+			},
+			[]string{"host", "device", "cache"},
+		),
+		httpGeoRequestsTotal: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Namespace: *namespace,
+				Name:      "http_geo_requests_total",
+				Help:      "Total response based on geo location",
+			},
+			[]string{"host", "country"},
 		),
 		httpResponseSizeBytes: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
@@ -248,6 +274,8 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.exporterUptime.Set(time.Since(e.startTime).Seconds())
 
 	e.httpRequestsTotal.Collect(ch)
+	e.httpDeviceRequestsTotal.Collect(ch)
+	e.httpGeoRequestsTotal.Collect(ch)
 	e.httpResponseSizeBytes.Collect(ch)
 	e.httpResponseContentTypes.Collect(ch)
 	e.originRetriesTotal.Collect(ch)
@@ -263,6 +291,8 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	e.httpRequestsTotal.Describe(ch)
+	e.httpDeviceRequestsTotal.Describe(ch)
+	e.httpGeoRequestsTotal.Describe(ch)
 	e.httpResponseSizeBytes.Describe(ch)
 	e.httpResponseContentTypes.Describe(ch)
 	e.originRetriesTotal.Describe(ch)
@@ -310,6 +340,14 @@ func (e *Exporter) SetLogfile(logpath string) {
 	}
 }
 
+func (e *Exporter) GetResponseSize(cloudmonitorData *CloudmonitorStruct) float64 {
+	if cloudmonitorData.Message.ResLength > cloudmonitorData.Message.ResBytes {
+		return cloudmonitorData.Message.ResLength
+	}
+
+	return cloudmonitorData.Message.ResBytes
+}
+
 func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
 	query := ""
 
@@ -329,12 +367,42 @@ func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
 		cloudmonitorData.Message.ResStatus,
 		cloudmonitorData.Message.ProtocolVersion,
 		e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
-		cloudmonitorData.Message.ResLength)
+		e.GetResponseSize(cloudmonitorData))
 
 	if e.writeAccesslog == true {
 		fmt.Fprintf(e.logWriter, logentry)
 	}
 
+}
+
+func (e *Exporter) DummyUse(vals ...interface{}) {
+	for _, val := range vals {
+		_ = val
+	}
+}
+
+func (e *Exporter) GetDeviceType(userAgent string) string {
+
+	browserName, browserVersion, platform, osName, osVersion, deviceType, ua := uasurfer.Parse(userAgent)
+
+	e.DummyUse(browserName, browserVersion, platform, osName, osVersion, ua)
+
+	switch deviceType {
+	case uasurfer.DeviceComputer:
+		return "desktop"
+	case uasurfer.DevicePhone:
+		return "mobile"
+	case uasurfer.DeviceTablet:
+		return "tablet"
+	case uasurfer.DeviceTV:
+		return "tv"
+	case uasurfer.DeviceConsole:
+		return "console"
+	case uasurfer.DeviceWearable:
+		return "wearable"
+	default:
+		return "unknown"
+	}
 }
 
 func (e *Exporter) MillisecondsToTime(ms string) time.Time {
@@ -386,16 +454,27 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 			cloudmonitorData.Message.Protocol).
 			Inc()
 
+		deviceType := e.GetDeviceType(e.UnescapeString(cloudmonitorData.Message.UserAgent))
+
+		e.httpDeviceRequestsTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
+			deviceType,
+			e.GetCacheString(cloudmonitorData.Performance.CacheStatus)).
+			Inc()
+
 		e.httpResponseSizeBytes.WithLabelValues(cloudmonitorData.Message.ReqHost,
 			cloudmonitorData.Message.ReqMethod,
 			string(cloudmonitorData.Message.ResStatus),
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
 			cloudmonitorData.Message.Protocol).
-			Add(cloudmonitorData.Message.ResLength)
+			Add(e.GetResponseSize(cloudmonitorData))
 
 		e.httpResponseContentTypes.WithLabelValues(cloudmonitorData.Message.ReqHost,
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
 			strings.ToLower(string(cloudmonitorData.Message.ResContentType))).
+			Inc()
+
+		e.httpGeoRequestsTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
+			cloudmonitorData.Geo.Country).
 			Inc()
 
 		e.httpResponseLatency.WithLabelValues(cloudmonitorData.Message.ReqHost,

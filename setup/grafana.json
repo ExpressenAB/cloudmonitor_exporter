@@ -1,5 +1,5 @@
 {
-  "id": 4,
+  "id": 1,
   "title": "Akamai",
   "tags": [],
   "style": "dark",
@@ -663,7 +663,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{cache}}",
               "refId": "A",
-              "step": 60
+              "step": 40
             }
           ],
           "timeFrom": null,
@@ -719,6 +719,178 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
+          "id": 15,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "sort": "total",
+            "sortDesc": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(irate(cloudmonitor_http_device_requests_total{host=~\"$host\"}[5m])) by (device)",
+              "intervalFactor": 2,
+              "legendFormat": "{{device}}",
+              "refId": "A",
+              "step": 30
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Requests/device",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "prom",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 16,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(rate(cloudmonitor_http_geo_requests_total{host=~\"$host\"}[5m])) by (country)",
+              "intervalFactor": 2,
+              "legendFormat": "{{country}}",
+              "refId": "A",
+              "step": 30
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Requets/country",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "showTitle": false,
+      "title": "New row"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "200px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "prom",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
           "id": 14,
           "isNew": true,
           "legend": {
@@ -749,7 +921,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{cache}}({{quantile}})",
               "refId": "A",
-              "step": 60
+              "step": 40
             }
           ],
           "timeFrom": null,
@@ -827,7 +999,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{cache}}({{quantile*100}})",
               "refId": "A",
-              "step": 60
+              "step": 40
             }
           ],
           "timeFrom": null,
@@ -904,7 +1076,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{content_type}}",
               "refId": "A",
-              "step": 60
+              "step": 40
             }
           ],
           "timeFrom": null,
@@ -945,7 +1117,7 @@
     {
       "collapse": false,
       "editable": true,
-      "height": "200px",
+      "height": "250px",
       "panels": [
         {
           "cacheTimeout": null,
@@ -998,7 +1170,7 @@
               "to": "null"
             }
           ],
-          "span": 3,
+          "span": 2,
           "sparkline": {
             "fillColor": "rgba(31, 118, 189, 0.18)",
             "full": false,
@@ -1061,7 +1233,7 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 5,
+          "span": 8,
           "stack": false,
           "steppedLine": false,
           "targets": [
@@ -1155,7 +1327,7 @@
               "to": "null"
             }
           ],
-          "span": 4,
+          "span": 2,
           "sparkline": {
             "fillColor": "rgba(31, 118, 189, 0.18)",
             "full": false,
@@ -1235,11 +1407,6 @@
             "text": "All",
             "value": "$__all",
             "selected": true
-          },
-          {
-            "text": "www.example.com",
-            "value": "www.example.com",
-            "selected": false
           }
         ],
         "query": "cloudmonitor_http_requests_total{}",
@@ -1254,7 +1421,7 @@
     "list": []
   },
   "schemaVersion": 12,
-  "version": 1,
+  "version": 7,
   "links": [],
   "gnetId": null
 }
