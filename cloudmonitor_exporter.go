@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/avct/user-agent-surfer"
 	"github.com/prometheus/client_golang/prometheus"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -426,21 +425,13 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 	e.postSize.Add(float64(r.ContentLength))
 
 	begin := time.Now()
-	body := bufio.NewReader(r.Body)
 
-	for {
-		data, err := body.ReadString('\n')
-
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			e.ReportParseError(err.Error())
-			continue
-		}
+	scanner := bufio.NewScanner(r.Body)
+	for scanner.Scan() {
 
 		cloudmonitorData := &CloudmonitorStruct{}
 
-		if err := json.NewDecoder(strings.NewReader(data)).Decode(cloudmonitorData); err != nil {
+		if err := json.NewDecoder(strings.NewReader(scanner.Text())).Decode(cloudmonitorData); err != nil {
 			e.ReportParseError(err.Error())
 			continue
 		}

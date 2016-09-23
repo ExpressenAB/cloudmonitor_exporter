@@ -829,7 +829,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(cloudmonitor_http_geo_requests_total{host=~\"$host\"}[5m])) by (country)",
+              "expr": "sum(irate(cloudmonitor_http_geo_requests_total{host=~\"$host\"}[5m])) by (country)",
               "intervalFactor": 2,
               "legendFormat": "{{country}}",
               "refId": "A",
