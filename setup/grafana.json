@@ -1,5 +1,5 @@
 {
-  "id": 1,
+  "id": 4,
   "title": "Akamai",
   "tags": [],
   "style": "dark",
@@ -152,7 +152,7 @@
           },
           "targets": [
             {
-              "expr": "(1.0-(sum(irate(cloudmonitor_http_requests_total{environment=\"$environment\",host=~\"$host\",cache=~\"(notcachable|miss)\"}[5m]))/sum(irate(cloudmonitor_http_requests_total{environment=\"$environment\",host=~\"$host\",cache=\"hit\"}[5m]))))",
+              "expr": "(1.0-(sum(irate(cloudmonitor_http_requests_total{host=~\"$host\",cache=~\"(notcachable|miss)\"}[5m]))/sum(irate(cloudmonitor_http_requests_total{host=~\"$host\",cache=\"hit\"}[5m]))))",
               "interval": "",
               "intervalFactor": 2,
               "refId": "A",
@@ -393,7 +393,7 @@
           },
           "targets": [
             {
-              "expr": "sum(irate(cloudmonitor_http_response_size_bytes{host=~\"$host\", cache=~\"(miss|notcacheable)\"}[5m])*8)",
+              "expr": "sum(irate(cloudmonitor_http_response_size_bytes{host=~\"$host\", cache=~\"(miss|notcachable)\"}[5m])*8)",
               "intervalFactor": 2,
               "refId": "A",
               "step": 4
@@ -663,7 +663,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{cache}}",
               "refId": "A",
-              "step": 4
+              "step": 60
             }
           ],
           "timeFrom": null,
@@ -749,7 +749,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{cache}}({{quantile}})",
               "refId": "A",
-              "step": 4
+              "step": 60
             }
           ],
           "timeFrom": null,
@@ -827,7 +827,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{cache}}({{quantile*100}})",
               "refId": "A",
-              "step": 4
+              "step": 60
             }
           ],
           "timeFrom": null,
@@ -904,7 +904,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{content_type}}",
               "refId": "A",
-              "step": 4
+              "step": 60
             }
           ],
           "timeFrom": null,
@@ -1167,7 +1167,7 @@
               "expr": "sum(rate(cloudmonitor_parse_errors_count[5m]))",
               "intervalFactor": 2,
               "refId": "A",
-              "step": 60
+              "step": 600
             }
           ],
           "thresholds": "",
@@ -1188,7 +1188,7 @@
     }
   ],
   "time": {
-    "from": "now-1h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -1235,6 +1235,11 @@
             "text": "All",
             "value": "$__all",
             "selected": true
+          },
+          {
+            "text": "www.example.com",
+            "value": "www.example.com",
+            "selected": false
           }
         ],
         "query": "cloudmonitor_http_requests_total{}",
@@ -1249,7 +1254,7 @@
     "list": []
   },
   "schemaVersion": 12,
-  "version": 4,
+  "version": 1,
   "links": [],
   "gnetId": null
 }
