@@ -72,7 +72,7 @@
           },
           "targets": [
             {
-              "expr": "(1.0-(sum(irate(cloudmonitor_http_response_size_bytes{environment=\"$environment\", host=~\"$host\",cache=~\"(notcachable|miss)\"}[5m]))/sum(irate(cloudmonitor_http_response_size_bytes{environment=\"$environment\", host=~\"$host\",cache=\"hit\"}[5m]))))",
+              "expr": "(1.0-(sum(irate(cloudmonitor_http_response_size_bytes{host=~\"$host\",cache=~\"(notcachable|miss)\"}[5m]))/sum(irate(cloudmonitor_http_response_size_bytes{host=~\"$host\",cache=\"hit\"}[5m]))))",
               "interval": "",
               "intervalFactor": 2,
               "refId": "A",
@@ -233,7 +233,7 @@
           },
           "targets": [
             {
-              "expr": "sum(rate(cloudmonitor_http_requests_total{environment=\"$environment\", host=~\"$host\"}[5m]))",
+              "expr": "sum(rate(cloudmonitor_http_requests_total{host=~\"$host\"}[5m]))",
               "intervalFactor": 2,
               "refId": "A",
               "step": 4
@@ -312,7 +312,7 @@
           },
           "targets": [
             {
-              "expr": "sum(irate(cloudmonitor_http_response_size_bytes{environment=\"$environment\", host=~\"$host\"}[5m])*8)",
+              "expr": "sum(irate(cloudmonitor_http_response_size_bytes{host=~\"$host\"}[5m])*8)",
               "interval": "1s",
               "intervalFactor": 2,
               "refId": "A",
@@ -393,7 +393,7 @@
           },
           "targets": [
             {
-              "expr": "sum(irate(cloudmonitor_http_response_size_bytes{environment=\"$environment\", host=~\"$host\", cache=~\"(miss|notcacheable)\"}[5m])*8)",
+              "expr": "sum(irate(cloudmonitor_http_response_size_bytes{host=~\"$host\", cache=~\"(miss|notcacheable)\"}[5m])*8)",
               "intervalFactor": 2,
               "refId": "A",
               "step": 4
@@ -460,7 +460,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(cloudmonitor_http_requests_total{environment=\"$environment\", host=~\"$host\",status_code=~\"2..\"}[60m])*60)",
+              "expr": "sum(irate(cloudmonitor_http_requests_total{host=~\"$host\",status_code=~\"2..\"}[60m])*60)",
               "interval": "1m",
               "intervalFactor": 2,
               "legendFormat": "2xx",
@@ -468,7 +468,7 @@
               "step": 120
             },
             {
-              "expr": "sum(irate(cloudmonitor_http_requests_total{environment=\"$environment\", host=~\"$host\",status_code=~\"3..\"}[60m])*60)",
+              "expr": "sum(irate(cloudmonitor_http_requests_total{host=~\"$host\",status_code=~\"3..\"}[60m])*60)",
               "interval": "1m",
               "intervalFactor": 2,
               "legendFormat": "3xx",
@@ -476,7 +476,7 @@
               "step": 120
             },
             {
-              "expr": "sum(irate(cloudmonitor_http_requests_total{environment=\"$environment\", host=~\"$host\",status_code=~\"4..\"}[60m])*60)",
+              "expr": "sum(irate(cloudmonitor_http_requests_total{host=~\"$host\",status_code=~\"4..\"}[60m])*60)",
               "interval": "1m",
               "intervalFactor": 2,
               "legendFormat": "4xx",
@@ -484,7 +484,7 @@
               "step": 120
             },
             {
-              "expr": "sum(irate(cloudmonitor_http_requests_total{environment=\"$environment\", host=~\"$host\",status_code=~\"5..\"}[60m])*60)",
+              "expr": "sum(irate(cloudmonitor_http_requests_total{host=~\"$host\",status_code=~\"5..\"}[60m])*60)",
               "interval": "1m",
               "intervalFactor": 2,
               "legendFormat": "5xx",
@@ -492,7 +492,7 @@
               "step": 120
             },
             {
-              "expr": "sum(irate(cloudmonitor_http_requests_total{environment=\"$environment\", host=~\"$host\",status_code=~\"(0|000)\"}[60m])*60)",
+              "expr": "sum(irate(cloudmonitor_http_requests_total{host=~\"$host\",status_code=~\"(0|000)\"}[60m])*60)",
               "interval": "1m",
               "intervalFactor": 2,
               "legendFormat": "0xx",
@@ -572,7 +572,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(cloudmonitor_http_requests_total{environment=\"$environment\", host=~\"$host\",status_code=~\"5..\"}[60m])*60)",
+              "expr": "sum(irate(cloudmonitor_http_requests_total{host=~\"$host\",status_code=~\"5..\"}[60m])*60)",
               "interval": "1m",
               "intervalFactor": 2,
               "legendFormat": "5xx",
@@ -580,7 +580,7 @@
               "step": 120
             },
             {
-              "expr": "sum(irate(cloudmonitor_http_requests_total{environment=\"$environment\", host=~\"$host\",status_code=~\"(0|000)\"}[60m])*60)",
+              "expr": "sum(irate(cloudmonitor_http_requests_total{host=~\"$host\",status_code=~\"(0|000)\"}[60m])*60)",
               "interval": "1m",
               "intervalFactor": 2,
               "legendFormat": "0xx",
@@ -658,7 +658,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum by (cache) (irate(cloudmonitor_http_requests_total{environment=\"$environment\", host=~\"$host\"}[5m])*60)",
+              "expr": "sum by (cache) (irate(cloudmonitor_http_requests_total{host=~\"$host\"}[5m])*60)",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{cache}}",
@@ -745,7 +745,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "avg by (cache,quantile)(cloudmonitor_http_origin_latency_milliseconds{environment=\"$environment\", host=~\"$host\"})",
+              "expr": "avg by (cache,quantile)(cloudmonitor_http_origin_latency_milliseconds{host=~\"$host\"})",
               "intervalFactor": 2,
               "legendFormat": "{{cache}}({{quantile}})",
               "refId": "A",
@@ -822,7 +822,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "avg by (cache,quantile)(cloudmonitor_http_response_latency_milliseconds{environment=\"$environment\", host=~\"$host\"})",
+              "expr": "avg by (cache,quantile)(cloudmonitor_http_response_latency_milliseconds{host=~\"$host\"})",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{cache}}({{quantile*100}})",
@@ -900,7 +900,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(cloudmonitor_http_response_content_types{environment=\"$environment\", host=~\"$host\"}[5m])) by (content_type)",
+              "expr": "sum(rate(cloudmonitor_http_response_content_types{host=~\"$host\"}[5m])) by (content_type)",
               "intervalFactor": 2,
               "legendFormat": "{{content_type}}",
               "refId": "A",
