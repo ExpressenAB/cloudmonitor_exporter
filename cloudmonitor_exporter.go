@@ -23,6 +23,7 @@ var (
 	metricsEndpoint   = flag.String("metrics.endpoint", "/metrics", "Path under which to expose metrics.")
 	collectorEndpoint = flag.String("collector.endpoint", "/collector", "Path under which to accept cloudmonitor data.")
 	accesslog         = flag.String("collector.accesslog", "", "Log incoming collector data to specified file.")
+	logErrors         = flag.Bool("collector.logerrors", false, "Log errors(5..) to stdout")
 	showVersion       = flag.Bool("version", false, "Show version information")
 	version           = "0.1.2"
 )
@@ -35,7 +36,7 @@ type Exporter struct {
 	exporterUptime, postSize                                                                                                                           prometheus.Counter
 	postProcessingTime, logLatency                                                                                                                     prometheus.Summary
 	logWriter                                                                                                                                          *bufio.Writer
-	writeAccesslog                                                                                                                                     bool
+	writeAccesslog, logErrors                                                                                                                          bool
 }
 
 type CloudmonitorStruct struct {
@@ -162,10 +163,11 @@ type ResponseStruct struct {
 	SetCookie                string `json:"setCookie"`
 }
 
-func NewExporter() *Exporter {
+func NewExporter(errors bool) *Exporter {
 	return &Exporter{
 		startTime:      time.Now(),
 		writeAccesslog: false,
+		logErrors:      errors,
 		httpRequestsTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace: *namespace,
@@ -372,6 +374,12 @@ func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
 		fmt.Fprintf(e.logWriter, logentry)
 	}
 
+	if e.logErrors {
+		status, _ := strconv.Atoi(cloudmonitorData.Message.ResStatus)
+		if status >= 500 && status <= 599 {
+			fmt.Printf(logentry)
+		}
+	}
 }
 
 func (e *Exporter) DummyUse(vals ...interface{}) {
@@ -502,7 +510,7 @@ func main() {
 		return
 	}
 
-	exporter := NewExporter()
+	exporter := NewExporter(*logErrors)
 
 	if len(*accesslog) > 0 {
 		exporter.SetLogfile(*accesslog)
