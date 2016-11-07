@@ -30,10 +30,9 @@ var (
 
 type Exporter struct {
 	sync.RWMutex
-	startTime                                                                                                                                          time.Time
 	httpRequestsTotal, httpResponseSizeBytes, httpDeviceRequestsTotal, httpResponseContentTypes, httpGeoRequestsTotal, parseErrors, originRetriesTotal *prometheus.CounterVec
 	httpResponseLatency, httpOriginLatency                                                                                                             *prometheus.SummaryVec
-	exporterUptime, postSize                                                                                                                           prometheus.Counter
+	postSize                                                                                                                                           prometheus.Counter
 	postProcessingTime, logLatency                                                                                                                     prometheus.Summary
 	logWriter                                                                                                                                          *bufio.Writer
 	writeAccesslog, logErrors                                                                                                                          bool
@@ -165,7 +164,6 @@ type ResponseStruct struct {
 
 func NewExporter(errors bool) *Exporter {
 	return &Exporter{
-		startTime:      time.Now(),
 		writeAccesslog: false,
 		logErrors:      errors,
 		httpRequestsTotal: prometheus.NewCounterVec(
@@ -239,13 +237,6 @@ func NewExporter(errors bool) *Exporter {
 			},
 			[]string{"host", "status_code", "protocol"},
 		),
-		exporterUptime: prometheus.NewCounter(
-			prometheus.CounterOpts{
-				Namespace: *namespace,
-				Name:      "exporter_uptime_seconds",
-				Help:      "Uptime of exporter",
-			},
-		),
 		parseErrors: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace: *namespace,
@@ -272,8 +263,6 @@ func NewExporter(errors bool) *Exporter {
 }
 
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
-	e.exporterUptime.Set(time.Since(e.startTime).Seconds())
-
 	e.httpRequestsTotal.Collect(ch)
 	e.httpDeviceRequestsTotal.Collect(ch)
 	e.httpGeoRequestsTotal.Collect(ch)
@@ -284,7 +273,6 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.httpResponseLatency.Collect(ch)
 	e.httpOriginLatency.Collect(ch)
 
-	ch <- e.exporterUptime
 	ch <- e.postProcessingTime
 	ch <- e.logLatency
 	ch <- e.postSize
@@ -301,7 +289,6 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	e.httpResponseLatency.Describe(ch)
 	e.httpOriginLatency.Describe(ch)
 
-	ch <- e.exporterUptime.Desc()
 	ch <- e.postProcessingTime.Desc()
 	ch <- e.logLatency.Desc()
 	ch <- e.postSize.Desc()
