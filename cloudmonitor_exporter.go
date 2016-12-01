@@ -328,14 +328,6 @@ func (e *Exporter) SetLogfile(logpath string) {
 	}
 }
 
-func (e *Exporter) GetResponseSize(cloudmonitorData *CloudmonitorStruct) float64 {
-	if cloudmonitorData.Message.ResLength > cloudmonitorData.Message.ResBytes {
-		return cloudmonitorData.Message.ResLength
-	}
-
-	return cloudmonitorData.Message.ResBytes
-}
-
 func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
 	query := ""
 
@@ -355,7 +347,7 @@ func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
 		cloudmonitorData.Message.ResStatus,
 		cloudmonitorData.Message.ProtocolVersion,
 		e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
-		e.GetResponseSize(cloudmonitorData))
+		cloudmonitorData.Message.ResBytes)
 
 	if e.writeAccesslog == true {
 		fmt.Fprintf(e.logWriter, logentry)
@@ -377,11 +369,11 @@ func (e *Exporter) DummyUse(vals ...interface{}) {
 
 func (e *Exporter) GetDeviceType(userAgent string) string {
 
-	browserName, browserVersion, platform, osName, osVersion, deviceType, ua := uasurfer.Parse(userAgent)
+	ua, uastring := uasurfer.Parse(userAgent)
 
-	e.DummyUse(browserName, browserVersion, platform, osName, osVersion, ua)
+	e.DummyUse(uastring)
 
-	switch deviceType {
+	switch ua.DeviceType {
 	case uasurfer.DeviceComputer:
 		return "desktop"
 	case uasurfer.DevicePhone:
@@ -452,7 +444,7 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 			string(cloudmonitorData.Message.ResStatus),
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
 			cloudmonitorData.Message.Protocol).
-			Add(e.GetResponseSize(cloudmonitorData))
+			Add(cloudmonitorData.Message.ResBytes)
 
 		e.httpResponseContentTypes.WithLabelValues(cloudmonitorData.Message.ReqHost,
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
