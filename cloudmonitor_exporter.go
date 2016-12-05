@@ -18,6 +18,11 @@ import (
 )
 
 var (
+	version   string
+	buildtime string
+)
+
+var (
 	listenAddress     = flag.String("exporter.address", ":9143", "The address on which to expose the web interface and generated Prometheus metrics.")
 	namespace         = flag.String("exporter.namespace", "cloudmonitor", "The prometheus namespace.")
 	metricsEndpoint   = flag.String("metrics.endpoint", "/metrics", "Path under which to expose metrics.")
@@ -25,7 +30,6 @@ var (
 	accesslog         = flag.String("collector.accesslog", "", "Log incoming collector data to specified file.")
 	logErrors         = flag.Bool("collector.logerrors", false, "Log errors(5..) to stdout")
 	showVersion       = flag.Bool("version", false, "Show version information")
-	version           = "0.1.2"
 )
 
 type Exporter struct {
@@ -482,10 +486,11 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Printf("Cloudmonitor-exporter v%s\n", version)
+		fmt.Printf("Cloudmonitor-exporter v%s\n", version+"("+buildtime+")")
 		return
 	}
 
