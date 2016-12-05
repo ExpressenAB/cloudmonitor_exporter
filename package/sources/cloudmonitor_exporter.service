@@ -1,0 +1,15 @@
+[Unit]
+Description=Cloudmonitor_exporter
+Documentation=https://github.com/ExpressenAB/cloudmonitor_exporter/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/cloudmonitor_exporter
+ExecStart=/usr/sbin/cloudmonitor_exporter $CMD_OPTS
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
