@@ -7,7 +7,7 @@ Akamai Cloudmonitor aggregates client request/responses as JSON data and send th
 Detailed information about cloudmonitor can be found [Here](https://control.akamai.com/dl/customers/ALTA/Cloud-Monitor-Implementation.pdf)
 
 ### Status
-[![Build Status](https://travis-ci.org/ExpressenAB/cloudmonitor_exporter.svg?branch=master)](https://travis-ci.org/ExpressenAB/cloudmonitor_exporter)
+[![Build Status](https://travis-ci.org/ExpressenAB/cloudmonitor_exporter.svg)](https://travis-ci.org/ExpressenAB/cloudmonitor_exporter)
 
 ## Get it
 The latest version can be found under [Releases](https://github.com/ExpressenAB/cloudmonitor_exporter/releases).
