@@ -2,7 +2,7 @@ GOTOOLS=github.com/mitchellh/gox/...
 
 NAME=cloudmonitor_exporter
 
-VERSION=0.1.3
+VERSION=0.1.4
 BUILD_TIME=`date '+%F%T%z'`
 
 LDFLAGS=-ldflags "-X main.version=${VERSION} -X main.buildtime=${BUILD_TIME}"
