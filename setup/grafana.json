@@ -1,16 +1,16 @@
 {
-  "id": 1,
-  "title": "Akamai",
-  "tags": [],
-  "style": "dark",
-  "timezone": "browser",
+  "annotations": {
+    "list": []
+  },
   "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
   "hideControls": false,
-  "sharedCrosshair": false,
+  "id": 1,
+  "links": [],
   "rows": [
     {
       "collapse": false,
-      "editable": true,
       "height": "100px",
       "panels": [
         {
@@ -36,7 +36,6 @@
           "hideTimeOverride": true,
           "id": 4,
           "interval": null,
-          "isNew": true,
           "links": [],
           "mappingType": 1,
           "mappingTypes": [
@@ -72,7 +71,7 @@
           },
           "targets": [
             {
-              "expr": "(1.0-(sum(irate(cloudmonitor_http_response_size_bytes{host=~\"$host\",cache=~\"(notcachable|miss)\"}[5m]))/sum(irate(cloudmonitor_http_response_size_bytes{host=~\"$host\",cache=\"hit\"}[5m]))))",
+              "expr": "(1.0-(sum(irate(cloudmonitor_http_response_bytes_total{host=~\"$host\",cache=~\"(notcachable|miss)\"}[5m]))/sum(irate(cloudmonitor_http_response_bytes_total{host=~\"$host\",cache=\"hit\"}[5m]))))",
               "interval": "",
               "intervalFactor": 2,
               "refId": "A",
@@ -116,7 +115,6 @@
           "hideTimeOverride": true,
           "id": 5,
           "interval": null,
-          "isNew": true,
           "links": [],
           "mappingType": 1,
           "mappingTypes": [
@@ -196,7 +194,6 @@
           "hideTimeOverride": true,
           "id": 1,
           "interval": null,
-          "isNew": true,
           "links": [],
           "mappingType": 1,
           "mappingTypes": [
@@ -234,6 +231,7 @@
           "targets": [
             {
               "expr": "sum(rate(cloudmonitor_http_requests_total{host=~\"$host\"}[5m]))",
+              "interval": "",
               "intervalFactor": 2,
               "refId": "A",
               "step": 4
@@ -276,7 +274,6 @@
           "hideTimeOverride": true,
           "id": 2,
           "interval": null,
-          "isNew": true,
           "links": [],
           "mappingType": 1,
           "mappingTypes": [
@@ -312,7 +309,7 @@
           },
           "targets": [
             {
-              "expr": "sum(irate(cloudmonitor_http_response_size_bytes{host=~\"$host\"}[5m])*8)",
+              "expr": "sum(irate(cloudmonitor_http_response_bytes_total{host=~\"$host\"}[5m])*8)",
               "interval": "1s",
               "intervalFactor": 2,
               "refId": "A",
@@ -357,7 +354,6 @@
           "hideTimeOverride": true,
           "id": 3,
           "interval": null,
-          "isNew": true,
           "links": [],
           "mappingType": 1,
           "mappingTypes": [
@@ -393,7 +389,7 @@
           },
           "targets": [
             {
-              "expr": "sum(irate(cloudmonitor_http_response_size_bytes{host=~\"$host\", cache=~\"(miss|notcachable)\"}[5m])*8)",
+              "expr": "sum(irate(cloudmonitor_http_response_bytes_total{host=~\"$host\", cache=~\"(miss|notcachable)\"}[5m])*8)",
               "intervalFactor": 2,
               "refId": "A",
               "step": 4
@@ -414,12 +410,15 @@
           "valueName": "avg"
         }
       ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
       "showTitle": false,
-      "title": "Row"
+      "title": "Row",
+      "titleSize": "h6"
     },
     {
       "collapse": false,
-      "editable": true,
       "height": "200px",
       "panels": [
         {
@@ -429,14 +428,8 @@
           "editable": true,
           "error": false,
           "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
+          "grid": {},
           "id": 6,
-          "isNew": true,
           "legend": {
             "avg": false,
             "current": false,
@@ -500,6 +493,7 @@
               "step": 120
             }
           ],
+          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
           "title": "Response codes/min",
@@ -511,7 +505,10 @@
           },
           "type": "graph",
           "xaxis": {
-            "show": true
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
           },
           "yaxes": [
             {
@@ -541,14 +538,8 @@
           "editable": true,
           "error": false,
           "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
+          "grid": {},
           "id": 7,
-          "isNew": true,
           "legend": {
             "avg": false,
             "current": false,
@@ -588,6 +579,7 @@
               "step": 120
             }
           ],
+          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
           "title": "Error response codes/min",
@@ -599,7 +591,10 @@
           },
           "type": "graph",
           "xaxis": {
-            "show": true
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
           },
           "yaxes": [
             {
@@ -627,14 +622,8 @@
           "editable": true,
           "error": false,
           "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
+          "grid": {},
           "id": 8,
-          "isNew": true,
           "legend": {
             "avg": false,
             "current": false,
@@ -666,6 +655,7 @@
               "step": 40
             }
           ],
+          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
           "title": "Cache status/min",
@@ -677,7 +667,10 @@
           },
           "type": "graph",
           "xaxis": {
-            "show": true
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
           },
           "yaxes": [
             {
@@ -699,11 +692,15 @@
           ]
         }
       ],
-      "title": "New row"
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "New row",
+      "titleSize": "h6"
     },
     {
       "collapse": false,
-      "editable": true,
       "height": "250px",
       "panels": [
         {
@@ -713,14 +710,8 @@
           "editable": true,
           "error": false,
           "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
+          "grid": {},
           "id": 15,
-          "isNew": true,
           "legend": {
             "alignAsTable": true,
             "avg": true,
@@ -755,6 +746,7 @@
               "step": 30
             }
           ],
+          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
           "title": "Requests/device",
@@ -766,7 +758,10 @@
           },
           "type": "graph",
           "xaxis": {
-            "show": true
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
           },
           "yaxes": [
             {
@@ -794,14 +789,8 @@
           "editable": true,
           "error": false,
           "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
+          "grid": {},
           "id": 16,
-          "isNew": true,
           "legend": {
             "alignAsTable": true,
             "avg": true,
@@ -836,6 +825,7 @@
               "step": 30
             }
           ],
+          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
           "title": "Requets/country",
@@ -847,7 +837,10 @@
           },
           "type": "graph",
           "xaxis": {
-            "show": true
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
           },
           "yaxes": [
             {
@@ -870,12 +863,14 @@
         }
       ],
       "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
       "showTitle": false,
-      "title": "New row"
+      "title": "New row",
+      "titleSize": "h6"
     },
     {
       "collapse": false,
-      "editable": true,
       "height": "200px",
       "panels": [
         {
@@ -885,14 +880,8 @@
           "editable": true,
           "error": false,
           "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
+          "grid": {},
           "id": 14,
-          "isNew": true,
           "legend": {
             "alignAsTable": false,
             "avg": false,
@@ -924,6 +913,7 @@
               "step": 40
             }
           ],
+          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
           "title": "Avg origin latency",
@@ -935,7 +925,10 @@
           },
           "type": "graph",
           "xaxis": {
-            "show": true
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
           },
           "yaxes": [
             {
@@ -963,14 +956,8 @@
           "editable": true,
           "error": false,
           "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
+          "grid": {},
           "id": 13,
-          "isNew": true,
           "legend": {
             "avg": false,
             "current": false,
@@ -1002,6 +989,7 @@
               "step": 40
             }
           ],
+          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
           "title": "Avg response>client latency",
@@ -1013,7 +1001,10 @@
           },
           "type": "graph",
           "xaxis": {
-            "show": true
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
           },
           "yaxes": [
             {
@@ -1041,14 +1032,8 @@
           "editable": true,
           "error": false,
           "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
+          "grid": {},
           "id": 10,
-          "isNew": true,
           "legend": {
             "avg": false,
             "current": false,
@@ -1072,13 +1057,14 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(cloudmonitor_http_response_content_types{host=~\"$host\"}[5m])) by (content_type)",
+              "expr": "sum(rate(cloudmonitor_http_response_content_types_total{host=~\"$host\"}[5m])) by (content_type)",
               "intervalFactor": 2,
               "legendFormat": "{{content_type}}",
               "refId": "A",
               "step": 40
             }
           ],
+          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
           "title": "Content types",
@@ -1090,7 +1076,10 @@
           },
           "type": "graph",
           "xaxis": {
-            "show": true
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
           },
           "yaxes": [
             {
@@ -1112,11 +1101,15 @@
           ]
         }
       ],
-      "title": "New row"
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "New row",
+      "titleSize": "h6"
     },
     {
       "collapse": false,
-      "editable": true,
       "height": "250px",
       "panels": [
         {
@@ -1143,7 +1136,6 @@
           "hideTimeOverride": true,
           "id": 11,
           "interval": null,
-          "isNew": true,
           "links": [],
           "mappingType": 1,
           "mappingTypes": [
@@ -1179,7 +1171,7 @@
           },
           "targets": [
             {
-              "expr": "sum(irate(cloudmonitor_post_size_bytes[5m])*8)",
+              "expr": "sum(irate(cloudmonitor_post_size_bytes_total[5m])*8)",
               "interval": "1s",
               "intervalFactor": 2,
               "refId": "A",
@@ -1207,14 +1199,8 @@
           "editable": true,
           "error": false,
           "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
+          "grid": {},
           "id": 9,
-          "isNew": true,
           "legend": {
             "avg": false,
             "current": false,
@@ -1246,6 +1232,7 @@
               "step": 2
             }
           ],
+          "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
           "title": "Log latency",
@@ -1257,7 +1244,10 @@
           },
           "type": "graph",
           "xaxis": {
-            "show": true
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
           },
           "yaxes": [
             {
@@ -1300,7 +1290,6 @@
           },
           "id": 12,
           "interval": null,
-          "isNew": true,
           "links": [],
           "mappingType": 1,
           "mappingTypes": [
@@ -1336,7 +1325,7 @@
           },
           "targets": [
             {
-              "expr": "sum(rate(cloudmonitor_parse_errors_count[5m]))",
+              "expr": "sum(rate(cloudmonitor_parse_errors_total[5m]))",
               "intervalFactor": 2,
               "refId": "A",
               "step": 600
@@ -1356,9 +1345,44 @@
           "valueName": "avg"
         }
       ],
-      "title": "New row"
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "New row",
+      "titleSize": "h6"
     }
   ],
+  "schemaVersion": 14,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "prom",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Hostname",
+        "multi": false,
+        "name": "host",
+        "options": [],
+        "query": "cloudmonitor_http_requests_total{}",
+        "refresh": 1,
+        "regex": ".*host=\"([a-z0-9-\\.]*)\".*",
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
+  },
   "time": {
     "from": "now-6h",
     "to": "now"
@@ -1388,40 +1412,7 @@
       "30d"
     ]
   },
-  "templating": {
-    "list": [
-      {
-        "allValue": ".*",
-        "current": {
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": "prom",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Hostname",
-        "multi": false,
-        "name": "host",
-        "options": [
-          {
-            "text": "All",
-            "value": "$__all",
-            "selected": true
-          }
-        ],
-        "query": "cloudmonitor_http_requests_total{}",
-        "refresh": 1,
-        "regex": ".*host=\"([a-z0-9-\\.]*)\".*",
-        "type": "query",
-        "useTags": false
-      }
-    ]
-  },
-  "annotations": {
-    "list": []
-  },
-  "schemaVersion": 12,
-  "version": 7,
-  "links": [],
-  "gnetId": null
+  "timezone": "browser",
+  "title": "Akamai",
+  "version": 3
 }

@@ -34,12 +34,12 @@ var (
 
 type Exporter struct {
 	sync.RWMutex
-	httpRequestsTotal, httpResponseSizeBytes, httpDeviceRequestsTotal, httpResponseContentTypes, httpGeoRequestsTotal, parseErrors, originRetriesTotal *prometheus.CounterVec
-	httpResponseLatency, httpOriginLatency                                                                                                             *prometheus.SummaryVec
-	postSize                                                                                                                                           prometheus.Counter
-	postProcessingTime, logLatency                                                                                                                     prometheus.Summary
-	logWriter                                                                                                                                          *bufio.Writer
-	writeAccesslog, logErrors                                                                                                                          bool
+	httpRequestsTotal, httpDeviceRequestsTotal, httpGeoRequestsTotal, httpResponseBytesTotal, httpResponseContentTypesTotal, parseErrorsTotal, originRetriesTotal *prometheus.CounterVec
+	httpResponseLatency, httpOriginLatency                                                                                                                        *prometheus.SummaryVec
+	postSizeBytesTotal                                                                                                                                            prometheus.Counter
+	postProcessingTime, logLatency                                                                                                                                prometheus.Summary
+	logWriter                                                                                                                                                     *bufio.Writer
+	writeAccesslog, logErrors                                                                                                                                     bool
 }
 
 type CloudmonitorStruct struct {
@@ -174,7 +174,7 @@ func NewExporter(errors bool) *Exporter {
 			prometheus.CounterOpts{
 				Namespace: *namespace,
 				Name:      "http_requests_total",
-				Help:      "Total number of processed loglines",
+				Help:      "Total number of processed requests",
 			},
 			[]string{"host", "method", "status_code", "cache", "protocol"},
 		),
@@ -182,7 +182,7 @@ func NewExporter(errors bool) *Exporter {
 			prometheus.CounterOpts{
 				Namespace: *namespace,
 				Name:      "http_device_requests_total",
-				Help:      "Total number of processed requests for devices",
+				Help:      "Total number of processed requests by devices",
 			},
 			[]string{"host", "device", "cache"},
 		),
@@ -190,22 +190,22 @@ func NewExporter(errors bool) *Exporter {
 			prometheus.CounterOpts{
 				Namespace: *namespace,
 				Name:      "http_geo_requests_total",
-				Help:      "Total response based on geo location",
+				Help:      "Total number of processed requests by country",
 			},
 			[]string{"host", "country"},
 		),
-		httpResponseSizeBytes: prometheus.NewCounterVec(
+		httpResponseBytesTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace: *namespace,
-				Name:      "http_response_size_bytes",
+				Name:      "http_response_bytes_total",
 				Help:      "Total response size in bytes",
 			},
 			[]string{"host", "method", "status_code", "cache", "protocol"},
 		),
-		httpResponseContentTypes: prometheus.NewCounterVec(
+		httpResponseContentTypesTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace: *namespace,
-				Name:      "http_response_content_types",
+				Name:      "http_response_content_types_total",
 				Help:      "Counter of response content types",
 			},
 			[]string{"host", "cache", "content_type"},
@@ -241,10 +241,10 @@ func NewExporter(errors bool) *Exporter {
 			},
 			[]string{"host", "status_code", "protocol"},
 		),
-		parseErrors: prometheus.NewCounterVec(
+		parseErrorsTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace: *namespace,
-				Name:      "parse_errors_count",
+				Name:      "parse_errors_total",
 				Help:      "Number of detected parse errors",
 			},
 			[]string{"error"},
@@ -256,10 +256,10 @@ func NewExporter(errors bool) *Exporter {
 				Help:      "Seconds to process post",
 			},
 		),
-		postSize: prometheus.NewCounter(
+		postSizeBytesTotal: prometheus.NewCounter(
 			prometheus.CounterOpts{
 				Namespace: *namespace,
-				Name:      "post_size_bytes",
+				Name:      "post_size_bytes_total",
 				Help:      "Size of incoming postdata in bytes",
 			},
 		),
@@ -270,32 +270,32 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.httpRequestsTotal.Collect(ch)
 	e.httpDeviceRequestsTotal.Collect(ch)
 	e.httpGeoRequestsTotal.Collect(ch)
-	e.httpResponseSizeBytes.Collect(ch)
-	e.httpResponseContentTypes.Collect(ch)
+	e.httpResponseBytesTotal.Collect(ch)
+	e.httpResponseContentTypesTotal.Collect(ch)
 	e.originRetriesTotal.Collect(ch)
-	e.parseErrors.Collect(ch)
+	e.parseErrorsTotal.Collect(ch)
 	e.httpResponseLatency.Collect(ch)
 	e.httpOriginLatency.Collect(ch)
 
 	ch <- e.postProcessingTime
 	ch <- e.logLatency
-	ch <- e.postSize
+	ch <- e.postSizeBytesTotal
 }
 
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	e.httpRequestsTotal.Describe(ch)
 	e.httpDeviceRequestsTotal.Describe(ch)
 	e.httpGeoRequestsTotal.Describe(ch)
-	e.httpResponseSizeBytes.Describe(ch)
-	e.httpResponseContentTypes.Describe(ch)
+	e.httpResponseBytesTotal.Describe(ch)
+	e.httpResponseContentTypesTotal.Describe(ch)
 	e.originRetriesTotal.Describe(ch)
-	e.parseErrors.Describe(ch)
+	e.parseErrorsTotal.Describe(ch)
 	e.httpResponseLatency.Describe(ch)
 	e.httpOriginLatency.Describe(ch)
 
 	ch <- e.postProcessingTime.Desc()
 	ch <- e.logLatency.Desc()
-	ch <- e.postSize.Desc()
+	ch <- e.postSizeBytesTotal.Desc()
 }
 
 func (e *Exporter) UnescapeString(s string) string {
@@ -373,9 +373,7 @@ func (e *Exporter) DummyUse(vals ...interface{}) {
 
 func (e *Exporter) GetDeviceType(userAgent string) string {
 
-	ua, uastring := uasurfer.Parse(userAgent)
-
-	e.DummyUse(uastring)
+	ua := uasurfer.Parse(userAgent)
 
 	switch ua.DeviceType {
 	case uasurfer.DeviceComputer:
@@ -404,7 +402,7 @@ func (e *Exporter) MillisecondsToTime(ms string) time.Time {
 }
 
 func (e *Exporter) ReportParseError(error string) {
-	e.parseErrors.WithLabelValues(error).Inc()
+	e.parseErrorsTotal.WithLabelValues(error).Inc()
 }
 
 func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
@@ -413,7 +411,7 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e.postSize.Add(float64(r.ContentLength))
+	e.postSizeBytesTotal.Add(float64(r.ContentLength))
 
 	begin := time.Now()
 
@@ -443,14 +441,14 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus)).
 			Inc()
 
-		e.httpResponseSizeBytes.WithLabelValues(cloudmonitorData.Message.ReqHost,
+		e.httpResponseBytesTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
 			cloudmonitorData.Message.ReqMethod,
 			string(cloudmonitorData.Message.ResStatus),
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
 			cloudmonitorData.Message.Protocol).
 			Add(cloudmonitorData.Message.ResBytes)
 
-		e.httpResponseContentTypes.WithLabelValues(cloudmonitorData.Message.ReqHost,
+		e.httpResponseContentTypesTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
 			strings.ToLower(string(cloudmonitorData.Message.ResContentType))).
 			Inc()
