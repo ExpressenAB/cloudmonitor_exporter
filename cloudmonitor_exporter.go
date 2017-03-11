@@ -339,7 +339,7 @@ func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
 		query = "?" + cloudmonitorData.Message.ReqQuery
 	}
 
-	logentry := fmt.Sprintf("%s %s %s \"%s %s://%s%s%s %s HTTP/%s\" %s %v\n",
+	logentry := fmt.Sprintf("%s %s %s \"%s %s://%s%s%s %s HTTP/%s\" %s %v '%s'\n",
 		cloudmonitorData.Message.ClientIP,
 		cloudmonitorData.Network.EdgeIP,
 		e.MillisecondsToTime(cloudmonitorData.Start),
@@ -351,7 +351,8 @@ func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
 		cloudmonitorData.Message.ResStatus,
 		cloudmonitorData.Message.ProtocolVersion,
 		e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
-		cloudmonitorData.Message.ResBytes)
+		cloudmonitorData.Message.ResBytes,
+		cloudmonitorData.Message.UserAgent)
 
 	if e.writeAccesslog == true {
 		fmt.Fprintf(e.logWriter, logentry)
