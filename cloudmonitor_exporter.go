@@ -8,6 +8,7 @@ import (
 	"github.com/avct/user-agent-surfer"
 	"github.com/prometheus/client_golang/prometheus"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -176,7 +177,7 @@ func NewExporter(errors bool) *Exporter {
 				Name:      "http_requests_total",
 				Help:      "Total number of processed requests",
 			},
-			[]string{"host", "method", "status_code", "cache", "protocol"},
+			[]string{"host", "method", "status_code", "cache", "protocol", "protocol_version", "ip_version"},
 		),
 		httpDeviceRequestsTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
@@ -184,7 +185,7 @@ func NewExporter(errors bool) *Exporter {
 				Name:      "http_device_requests_total",
 				Help:      "Total number of processed requests by devices",
 			},
-			[]string{"host", "device", "cache"},
+			[]string{"host", "device", "cache", "protocol", "protocol_version", "ip_version"},
 		),
 		httpGeoRequestsTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
@@ -192,7 +193,7 @@ func NewExporter(errors bool) *Exporter {
 				Name:      "http_geo_requests_total",
 				Help:      "Total number of processed requests by country",
 			},
-			[]string{"host", "country"},
+			[]string{"host", "country", "ip_version"},
 		),
 		httpResponseBytesTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
@@ -200,7 +201,7 @@ func NewExporter(errors bool) *Exporter {
 				Name:      "http_response_bytes_total",
 				Help:      "Total response size in bytes",
 			},
-			[]string{"host", "method", "status_code", "cache", "protocol"},
+			[]string{"host", "method", "status_code", "cache", "protocol", "protocol_version"},
 		),
 		httpResponseContentEncodingTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
@@ -224,7 +225,7 @@ func NewExporter(errors bool) *Exporter {
 				Name:      "http_response_latency_milliseconds",
 				Help:      "Response latency in milliseconds",
 			},
-			[]string{"host", "cache"},
+			[]string{"host", "cache", "protocol", "protocol_version", "ip_version"},
 		),
 		httpOriginLatency: prometheus.NewSummaryVec(
 			prometheus.SummaryOpts{
@@ -232,7 +233,7 @@ func NewExporter(errors bool) *Exporter {
 				Name:      "http_origin_latency_milliseconds",
 				Help:      "Origin latency in milliseconds",
 			},
-			[]string{"host", "cache"},
+			[]string{"host", "cache", "protocol", "protocol_version", "ip_version"},
 		),
 		logLatency: prometheus.NewSummary(
 			prometheus.SummaryOpts{
@@ -247,7 +248,7 @@ func NewExporter(errors bool) *Exporter {
 				Name:      "origin_retries_total",
 				Help:      "Number of origin retries",
 			},
-			[]string{"host", "status_code", "protocol"},
+			[]string{"host", "status_code", "protocol", "ip_version"},
 		),
 		parseErrorsTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
@@ -416,6 +417,17 @@ func (e *Exporter) ReportParseError(error string) {
 	e.parseErrorsTotal.WithLabelValues(error).Inc()
 }
 
+func getIPVersion(ip_s string) string {
+	ip := net.ParseIP(ip_s)
+	if ip.To4() != nil {
+		return "ipv4"
+	} else if ip.To16() != nil {
+		return "ipv6"
+	} else {
+		return "unknown"
+	}
+}
+
 func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -436,58 +448,83 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
+		ipVersion := getIPVersion(cloudmonitorData.Message.ClientIP)
+
 		e.OutputLogEntry(cloudmonitorData)
 
-		e.httpRequestsTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
+		e.httpRequestsTotal.WithLabelValues(
+			cloudmonitorData.Message.ReqHost,
 			cloudmonitorData.Message.ReqMethod,
 			string(cloudmonitorData.Message.ResStatus),
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
-			cloudmonitorData.Message.Protocol).
-			Inc()
+			cloudmonitorData.Message.Protocol,
+			cloudmonitorData.Message.ProtocolVersion,
+			ipVersion,
+		).Inc()
 
 		deviceType := e.GetDeviceType(e.UnescapeString(cloudmonitorData.Message.UserAgent))
 
-		e.httpDeviceRequestsTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
+		e.httpDeviceRequestsTotal.WithLabelValues(
+			cloudmonitorData.Message.ReqHost,
 			deviceType,
-			e.GetCacheString(cloudmonitorData.Performance.CacheStatus)).
-			Inc()
+			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
+			cloudmonitorData.Message.Protocol,
+			cloudmonitorData.Message.ProtocolVersion,
+			ipVersion,
+		).Inc()
 
-		e.httpResponseContentEncodingTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
+		e.httpResponseContentEncodingTotal.WithLabelValues(
+			cloudmonitorData.Message.ReqHost,
 			strings.ToLower(string(cloudmonitorData.Response.ContentEncoding)),
-			strings.ToLower(string(cloudmonitorData.Message.ResContentType))).
-			Inc()
+			strings.ToLower(string(cloudmonitorData.Message.ResContentType)),
+		).Inc()
 
-		e.httpResponseBytesTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
+		e.httpResponseBytesTotal.WithLabelValues(
+			cloudmonitorData.Message.ReqHost,
 			cloudmonitorData.Message.ReqMethod,
 			string(cloudmonitorData.Message.ResStatus),
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
-			cloudmonitorData.Message.Protocol).
-			Add(cloudmonitorData.Message.ResBytes)
+			cloudmonitorData.Message.Protocol,
+			cloudmonitorData.Message.ProtocolVersion,
+		).Add(cloudmonitorData.Message.ResBytes)
 
-		e.httpResponseContentTypesTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
+		e.httpResponseContentTypesTotal.WithLabelValues(
+			cloudmonitorData.Message.ReqHost,
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
-			strings.ToLower(string(cloudmonitorData.Message.ResContentType))).
-			Inc()
+			strings.ToLower(string(cloudmonitorData.Message.ResContentType)),
+		).Inc()
 
-		e.httpGeoRequestsTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
-			cloudmonitorData.Geo.Country).
-			Inc()
+		e.httpGeoRequestsTotal.WithLabelValues(
+			cloudmonitorData.Message.ReqHost,
+			cloudmonitorData.Geo.Country,
+			ipVersion,
+		).Inc()
 
-		e.httpResponseLatency.WithLabelValues(cloudmonitorData.Message.ReqHost,
-			e.GetCacheString(cloudmonitorData.Performance.CacheStatus)).
-			Observe(cloudmonitorData.Performance.DownloadTime)
+		e.httpResponseLatency.WithLabelValues(
+			cloudmonitorData.Message.ReqHost,
+			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
+			cloudmonitorData.Message.Protocol,
+			cloudmonitorData.Message.ProtocolVersion,
+			ipVersion,
+		).Observe(cloudmonitorData.Performance.DownloadTime)
 
-		e.httpOriginLatency.WithLabelValues(cloudmonitorData.Message.ReqHost,
-			e.GetCacheString(cloudmonitorData.Performance.CacheStatus)).
-			Observe(cloudmonitorData.Performance.OriginLatency)
+		e.httpOriginLatency.WithLabelValues(
+			cloudmonitorData.Message.ReqHost,
+			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
+			cloudmonitorData.Message.Protocol,
+			cloudmonitorData.Message.ProtocolVersion,
+			ipVersion,
+		).Observe(cloudmonitorData.Performance.OriginLatency)
 
 		latency := time.Since(e.MillisecondsToTime(cloudmonitorData.Start))
 		e.logLatency.Observe(latency.Seconds())
 
-		e.originRetriesTotal.WithLabelValues(cloudmonitorData.Message.ReqHost,
+		e.originRetriesTotal.WithLabelValues(
+			cloudmonitorData.Message.ReqHost,
 			string(cloudmonitorData.Message.ResStatus),
-			cloudmonitorData.Message.Protocol).
-			Add(float64(cloudmonitorData.Performance.OriginRetry))
+			cloudmonitorData.Message.Protocol,
+			ipVersion,
+		).Add(float64(cloudmonitorData.Performance.OriginRetry))
 	}
 
 	duration := time.Since(begin)
