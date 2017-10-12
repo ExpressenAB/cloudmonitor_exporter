@@ -3,9 +3,16 @@ GOTOOLS=github.com/mitchellh/gox/...
 NAME=cloudmonitor_exporter
 
 VERSION=0.1.5
-BUILD_TIME=`date '+%F-%T%z'`
-
-LDFLAGS=-ldflags "-X main.version=${VERSION} -X main.buildtime=${BUILD_TIME}"
+COMMIT=$(shell git rev-parse HEAD)
+BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+BUILDER=$(shell whoami)@$(shell hostname)
+BUILD_DATE=$(shell date '+%F-%T%z')
+VERSION_PATH=github.com/ExpressenAB/cloudmonitor_exporter/vendor/github.com/prometheus/common/version
+LDFLAGS=-ldflags "-X ${VERSION_PATH}.Version=${VERSION} \
+                  -X ${VERSION_PATH}.Revision=${COMMIT} \
+                  -X ${VERSION_PATH}.Branch=${BRANCH} \
+                  -X ${VERSION_PATH}.BuildUser=${BUILDER} \
+                  -X ${VERSION_PATH}.BuildDate=${BUILD_DATE}"
 
 all: tools build
 
