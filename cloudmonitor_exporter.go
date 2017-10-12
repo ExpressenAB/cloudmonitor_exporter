@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/avct/user-agent-surfer"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/version"
 	"log"
 	"net"
 	"net/http"
@@ -16,11 +17,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-)
-
-var (
-	version   string
-	buildtime string
 )
 
 var (
@@ -543,7 +539,7 @@ func main() {
 
 	flag.Parse()
 
-	log.Printf("Cloudmonitor-exporter v%s\n", version+"("+buildtime+")")
+	log.Printf("Cloudmonitor-exporter %s\n", version.Print("cloudmonitor_exporter"))
 	if *showVersion {
 		return
 	}
@@ -555,6 +551,7 @@ func main() {
 		log.Printf("logging to %s", *accesslog)
 	}
 
+	prometheus.MustRegister(version.NewCollector("cloudmonitor_exporter"))
 	prometheus.MustRegister(exporter)
 
 	http.Handle(*metricsEndpoint, prometheus.Handler())
