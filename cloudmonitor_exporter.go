@@ -473,11 +473,20 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 			ipVersion,
 		).Inc()
 
-		e.httpResponseContentEncodingTotal.WithLabelValues(
-			cloudmonitorData.Message.ReqHost,
-			strings.ToLower(string(cloudmonitorData.Response.ContentEncoding)),
-			strings.ToLower(string(cloudmonitorData.Message.ResContentType)),
-		).Inc()
+		// Don't increment for non-defined content-types
+		if cloudmonitorData.Message.ResContentType != "" && cloudmonitorData.Message.ResContentType != "content_type" {
+			e.httpResponseContentEncodingTotal.WithLabelValues(
+				cloudmonitorData.Message.ReqHost,
+				strings.ToLower(string(cloudmonitorData.Response.ContentEncoding)),
+				strings.ToLower(string(cloudmonitorData.Message.ResContentType)),
+			).Inc()
+
+			e.httpResponseContentTypesTotal.WithLabelValues(
+				cloudmonitorData.Message.ReqHost,
+				e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
+				strings.ToLower(string(cloudmonitorData.Message.ResContentType)),
+			).Inc()
+		}
 
 		e.httpResponseBytesTotal.WithLabelValues(
 			cloudmonitorData.Message.ReqHost,
@@ -487,12 +496,6 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 			cloudmonitorData.Message.Protocol,
 			cloudmonitorData.Message.ProtocolVersion,
 		).Add(cloudmonitorData.Message.ResBytes)
-
-		e.httpResponseContentTypesTotal.WithLabelValues(
-			cloudmonitorData.Message.ReqHost,
-			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
-			strings.ToLower(string(cloudmonitorData.Message.ResContentType)),
-		).Inc()
 
 		e.httpGeoRequestsTotal.WithLabelValues(
 			cloudmonitorData.Message.ReqHost,
