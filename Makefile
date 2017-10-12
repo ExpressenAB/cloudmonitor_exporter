@@ -2,7 +2,7 @@ GOTOOLS=github.com/mitchellh/gox/...
 
 NAME=cloudmonitor_exporter
 
-VERSION=0.1.5
+VERSION=0.1.6
 COMMIT=$(shell git rev-parse HEAD)
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 BUILDER=$(shell whoami)@$(shell hostname)
