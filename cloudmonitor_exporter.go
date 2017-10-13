@@ -426,7 +426,7 @@ func getIPVersion(ip_s string) string {
 
 func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Internal server error", http.StatusMethodNotAllowed)
 		return
 	}
 
