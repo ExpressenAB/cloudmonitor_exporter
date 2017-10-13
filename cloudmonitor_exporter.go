@@ -441,6 +441,7 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 
 		if err := json.NewDecoder(strings.NewReader(scanner.Text())).Decode(cloudmonitorData); err != nil {
 			e.ReportParseError(err.Error())
+			log.Printf("Could not parse message %q (%v)\n", scanner.Text(), err)
 			continue
 		}
 
