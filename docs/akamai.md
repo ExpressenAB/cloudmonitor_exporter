@@ -23,3 +23,11 @@ Basic settings of an cloudmonitor property:
 To enable cloudmonitor on your site properties, just add cloudmonitor behavior with correct parameters.
 
 ![alt text](akamai_site_property.png "Akamai behavior")
+
+## Sampling of Cloudmonitor data
+
+On a very busy property, it might not be necessary with very detailed data, since it will result in a high log bandwith and associated costs. If you are willing to accept some inaccuracy, you can enable sampling of cloudmonitor data. This is done in two steps:
+* Set a criteria on the Cloudmonitor rule
+* Set a matching sample rate as a parameter in the delivery url path on the Cloudmonitor behavior
+
+![alt text](akamai_cloudmonitor_sample.png "Akamai behavior with sampling")

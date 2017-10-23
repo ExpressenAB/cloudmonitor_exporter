@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -430,6 +431,16 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var multiplier float64 = float64(1)
+	dir, file := path.Split(r.URL.Path)
+	if dir != "" && path.Base(dir) == "sample-percentage" {
+		if sample, err := strconv.Atoi(file); err != nil || sample == 0 {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		} else {
+			multiplier = float64(100 / sample)
+		}
+	}
+
 	e.postSizeBytesTotal.Add(float64(r.ContentLength))
 
 	begin := time.Now()
@@ -457,7 +468,7 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 			cloudmonitorData.Message.Protocol,
 			cloudmonitorData.Message.ProtocolVersion,
 			ipVersion,
-		).Inc()
+		).Add(multiplier)
 
 		deviceType := e.GetDeviceType(e.UnescapeString(cloudmonitorData.Message.UserAgent))
 
@@ -468,7 +479,7 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 			cloudmonitorData.Message.Protocol,
 			cloudmonitorData.Message.ProtocolVersion,
 			ipVersion,
-		).Inc()
+		).Add(multiplier)
 
 		// Don't increment for non-defined content-types
 		if cloudmonitorData.Message.ResContentType != "" && cloudmonitorData.Message.ResContentType != "content_type" {
@@ -476,13 +487,13 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 				cloudmonitorData.Message.ReqHost,
 				strings.ToLower(string(cloudmonitorData.Response.ContentEncoding)),
 				strings.ToLower(string(cloudmonitorData.Message.ResContentType)),
-			).Inc()
+			).Add(multiplier)
 
 			e.httpResponseContentTypesTotal.WithLabelValues(
 				cloudmonitorData.Message.ReqHost,
 				e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
 				strings.ToLower(string(cloudmonitorData.Message.ResContentType)),
-			).Inc()
+			).Add(multiplier)
 		}
 
 		e.httpResponseBytesTotal.WithLabelValues(
@@ -492,13 +503,13 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 			e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
 			cloudmonitorData.Message.Protocol,
 			cloudmonitorData.Message.ProtocolVersion,
-		).Add(cloudmonitorData.Message.ResBytes)
+		).Add(cloudmonitorData.Message.ResBytes * multiplier)
 
 		e.httpGeoRequestsTotal.WithLabelValues(
 			cloudmonitorData.Message.ReqHost,
 			cloudmonitorData.Geo.Country,
 			ipVersion,
-		).Inc()
+		).Add(multiplier)
 
 		e.httpResponseLatency.WithLabelValues(
 			cloudmonitorData.Message.ReqHost,
@@ -524,7 +535,7 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 			string(cloudmonitorData.Message.ResStatus),
 			cloudmonitorData.Message.Protocol,
 			ipVersion,
-		).Add(float64(cloudmonitorData.Performance.OriginRetry))
+		).Add(float64(cloudmonitorData.Performance.OriginRetry) * multiplier)
 	}
 
 	duration := time.Since(begin)
@@ -554,6 +565,11 @@ func main() {
 
 	prometheus.MustRegister(version.NewCollector("cloudmonitor_exporter"))
 	prometheus.MustRegister(exporter)
+
+	if !strings.HasSuffix(*collectorEndpoint, "/") {
+		endpointWithSlash := fmt.Sprintf("%v/", *collectorEndpoint)
+		http.HandleFunc(endpointWithSlash, exporter.HandleCollectorPost)
+	}
 
 	http.Handle(*metricsEndpoint, prometheus.Handler())
 	http.HandleFunc(*collectorEndpoint, exporter.HandleCollectorPost)
