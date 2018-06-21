@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/avct/user-agent-surfer"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/version"
 	"log"
 	"net"
 	"net/http"
@@ -18,6 +15,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/avct/user-agent-surfer"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/version"
 )
 
 var (
@@ -37,6 +38,7 @@ type Exporter struct {
 	postSizeBytesTotal                                                                                                                                                                              prometheus.Counter
 	postProcessingTime, logLatency                                                                                                                                                                  prometheus.Summary
 	logWriter                                                                                                                                                                                       *bufio.Writer
+	logfile                                                                                                                                                                                         *os.File
 	writeAccesslog, logErrors                                                                                                                                                                       bool
 }
 
@@ -107,7 +109,7 @@ type MessageStruct struct {
 	ResLength       float64 `json:"respLen,string"`
 	ResBytes        float64 `json:"bytes,string"`
 	UserAgent       string  `json:"UA"`
-	ForwardHost     string  `json:"fwdHost`
+	ForwardHost     string  `json:"fwdHost"`
 }
 
 type RequestStruct struct {
@@ -329,15 +331,24 @@ func (e *Exporter) GetCacheString(i int) string {
 	return "-"
 }
 
+func (e *Exporter) Close() error {
+	return e.logfile.Close()
+}
+
 func (e *Exporter) SetLogfile(logpath string) {
-	if len(logpath) > 0 {
-		logfile, err := os.OpenFile(logpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
-		if err != nil {
-			panic(err)
-		}
-		e.logWriter = bufio.NewWriter(logfile)
-		e.writeAccesslog = true
+	if len(logpath) <= 0 {
+		return
 	}
+
+	var err error
+
+	e.logfile, err = os.OpenFile(logpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	e.logWriter = bufio.NewWriter(e.logfile)
+	e.writeAccesslog = true
 }
 
 func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
@@ -446,6 +457,8 @@ func (e *Exporter) HandleCollectorPost(w http.ResponseWriter, r *http.Request) {
 	begin := time.Now()
 
 	scanner := bufio.NewScanner(r.Body)
+	defer r.Body.Close()
+
 	for scanner.Scan() {
 
 		cloudmonitorData := &CloudmonitorStruct{}
@@ -557,6 +570,7 @@ func main() {
 	}
 
 	exporter := NewExporter(*logErrors)
+	defer exporter.Close()
 
 	if len(*accesslog) > 0 {
 		exporter.SetLogfile(*accesslog)
