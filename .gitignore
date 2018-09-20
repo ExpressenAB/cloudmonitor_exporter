@@ -1,5 +1,6 @@
 # Folders
 bin
 build
+.idea
 
 .DS_Store
