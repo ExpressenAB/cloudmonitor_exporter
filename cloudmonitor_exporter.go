@@ -351,14 +351,8 @@ func (e *Exporter) SetLogfile(logpath string) {
 	e.writeAccesslog = true
 }
 
-func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
-	query := ""
-
-	if len(cloudmonitorData.Message.ReqQuery) > 0 {
-		query = "?" + cloudmonitorData.Message.ReqQuery
-	}
-
-	logentry := fmt.Sprintf("%s %s %s \"%s %s://%s%s%s %s HTTP/%s\" %s %v '%s'\n",
+func (e *Exporter) createLogEntry(cloudmonitorData *CloudmonitorStruct, query string) string {
+	return fmt.Sprintf("%s %s %s \"%s %s://%s%s%s %s HTTP/%s\" %s %v '%s'\n",
 		cloudmonitorData.Message.ClientIP,
 		cloudmonitorData.Network.EdgeIP,
 		e.MillisecondsToTime(cloudmonitorData.Start),
@@ -371,7 +365,17 @@ func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
 		cloudmonitorData.Message.ProtocolVersion,
 		e.GetCacheString(cloudmonitorData.Performance.CacheStatus),
 		cloudmonitorData.Message.ResBytes,
-		cloudmonitorData.Message.UserAgent)
+		e.UnescapeString(cloudmonitorData.Message.UserAgent))
+}
+
+func (e *Exporter) OutputLogEntry(cloudmonitorData *CloudmonitorStruct) {
+	query := ""
+
+	if len(cloudmonitorData.Message.ReqQuery) > 0 {
+		query = "?" + cloudmonitorData.Message.ReqQuery
+	}
+
+	logentry := e.createLogEntry(cloudmonitorData, query)
 
 	if e.writeAccesslog == true {
 		fmt.Fprintf(e.logWriter, logentry)
