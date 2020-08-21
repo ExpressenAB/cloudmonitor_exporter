@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/avct/user-agent-surfer"
+	uasurfer "github.com/avct/user-agent-surfer"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/version"
 )
