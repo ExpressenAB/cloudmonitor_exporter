@@ -43,3 +43,5 @@ rpm: package
 	@mkdir -p build/rpm
 	docker run --rm -i -v $(shell pwd):/docker centos:7 /docker/package/rpm/build_rpm.sh ${VERSION}
 
+docker: xbuild
+	docker build . -t cloudmonitor_exporter:${VERSION}
