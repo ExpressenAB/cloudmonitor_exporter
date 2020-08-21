@@ -76,7 +76,7 @@ jobs:
                 asset_name: cloudmonitor_exporter_${{ steps.vars.outputs.tag }}_windows_amd64.tar.gz
                 asset_content_type: application/gzip
           - name: Build Image
-            run: make docker
+            run: VERSION=${{ steps.vars.outputs.tag }} make docker
           - name: Login to docker hub
             run: docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_PASSWORD }}
           - name: Push to docker hub
