@@ -1,0 +1,77 @@
+name: Create Release
+on:
+  release:
+    types:
+      - created
+jobs:
+    build:
+        name: Create Artifacts
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout Code
+            uses: actions/checkout@master 
+          - name: Get Tag
+            id: vars
+            run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+          - name: Check Tag
+            run: echo ${{ steps.vars.outputs.tag }}
+          - name: Get ID
+            uses: octokit/request-action@v2.x
+            id: get_release_id
+            with:
+              route: GET /repos/${{ github.repository }}/releases/tags/${{ steps.vars.outputs.tag }}
+            env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          - name: Set ID
+            id: set_id
+            run: echo ::set-output name=release_id::${{ fromJson(steps.get_release_id.outputs.data).id }}
+          - name: Install GO
+            uses: actions/setup-go@v2
+            with:
+              go-version: '1.14'
+          - name: Go Version
+            run: go version
+          - name: Go Environment
+            run: go env
+          - name: Build RPM
+            run: VERSION=${{ steps.vars.outputs.tag }} make rpm
+          - name: Upload RPM
+            id: upload-rpm
+            uses: actions/upload-release-asset@v1
+            env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            with:
+                upload_url: https://uploads.github.com/repos/BonnierNews/cloudmonitor_exporter/releases/${{steps.set_id.outputs.release_id}}/assets{?name,label}
+                asset_path: build/rpm/cloudmonitor_exporter-${{ steps.vars.outputs.tag }}-1.x86_64.rpm
+                asset_name: cloudmonitor_exporter-${{ steps.vars.outputs.tag }}-1.x86_64.rpm
+                asset_content_type: application/gzip
+          - name: Upload Linux Tarball
+            id: upload-linux-tgz 
+            uses: actions/upload-release-asset@v1
+            env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            with:
+                upload_url: https://uploads.github.com/repos/BonnierNews/cloudmonitor_exporter/releases/${{steps.set_id.outputs.release_id}}/assets{?name,label}
+                asset_path: build/tgz/cloudmonitor_exporter_${{ steps.vars.outputs.tag }}_linux_amd64.tar.gz
+                asset_name: cloudmonitor_exporter_${{ steps.vars.outputs.tag }}_linux_amd64.tar.gz
+                asset_content_type: application/gzip
+          - name: Upload Darwin Tarball
+            id: upload-darwin-tgz
+            uses: actions/upload-release-asset@v1
+            env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            with:
+                upload_url: https://uploads.github.com/repos/BonnierNews/cloudmonitor_exporter/releases/${{steps.set_id.outputs.release_id}}/assets{?name,label}
+                asset_path: build/tgz/cloudmonitor_exporter_${{ steps.vars.outputs.tag }}_darwin_amd64.tar.gz
+                asset_name: cloudmonitor_exporter_${{ steps.vars.outputs.tag }}_darwin_amd64.tar.gz
+                asset_content_type: application/gzip
+          - name: Upload Windows Tarball
+            id: upload-windows-tgz
+            uses: actions/upload-release-asset@v1
+            env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            with:
+                upload_url: https://uploads.github.com/repos/BonnierNews/cloudmonitor_exporter/releases/${{steps.set_id.outputs.release_id}}/assets{?name,label}
+                asset_path: build/tgz/cloudmonitor_exporter_${{ steps.vars.outputs.tag }}_windows_amd64.tar.gz
+                asset_name: cloudmonitor_exporter_${{ steps.vars.outputs.tag }}_windows_amd64.tar.gz
+                asset_content_type: application/gzip
