@@ -83,3 +83,6 @@ jobs:
             run: docker push bonniernews/cloudmonitor_exporter:${{ steps.vars.outputs.tag }}
           - name: Tag image as latest
             run: docker tag bonniernews/cloudmonitor_exporter:${{ steps.vars.outputs.tag }} bonniernews/cloudmonitor_exporter:latest
+          - name: Push latest image
+            run: docker push bonniernews/cloudmonitor_exporter:latest
+
