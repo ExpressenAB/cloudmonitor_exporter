@@ -44,4 +44,4 @@ rpm: package
 	docker run --rm -i -v $(shell pwd):/docker centos:7 /docker/package/rpm/build_rpm.sh ${VERSION}
 
 docker: xbuild
-	docker build --build-arg version=${VERSION} . -t bonniernews/cloudmonitor_exporter:${VERSION}
+	docker build --build-arg VERSION=${VERSION} . -t bonniernews/cloudmonitor_exporter:${VERSION}
