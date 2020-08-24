@@ -24,9 +24,9 @@ build:
 
 xbuild: clean
 	@mkdir -p build
-	GOARCH=amd64 GOOS="linux" go build ${LDFLAGS} -o "build/$(NAME)_$(VERSION)_linux_amd64/$(NAME)"
-	GOARCH=amd64 GOOS="darwin" go build ${LDFLAGS} -o "build/$(NAME)_$(VERSION)_darwin_amd64/$(NAME)"
-	GOARCH=amd64 GOOS="windows" go build ${LDFLAGS} -o "build/$(NAME)_$(VERSION)_windows_amd64/$(NAME)"
+	CGO_ENABLED=0 GOARCH=amd64 GOOS="linux" go build ${LDFLAGS} -o "build/$(NAME)_$(VERSION)_linux_amd64/$(NAME)"
+	CGO_ENABLED=0 GOARCH=amd64 GOOS="darwin" go build ${LDFLAGS} -o "build/$(NAME)_$(VERSION)_darwin_amd64/$(NAME)"
+	CGO_ENABLED=0 GOARCH=amd64 GOOS="windows" go build ${LDFLAGS} -o "build/$(NAME)_$(VERSION)_windows_amd64/$(NAME)"
 
 package: xbuild
 	$(eval FILES := $(shell ls build))
