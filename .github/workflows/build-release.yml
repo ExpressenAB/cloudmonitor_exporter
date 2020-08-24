@@ -81,3 +81,5 @@ jobs:
             run: docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_PASSWORD }}
           - name: Push to docker hub
             run: docker push bonniernews/cloudmonitor_exporter:${{ steps.vars.outputs.tag }}
+          - name: Tag image as latest
+            run: docker tag bonniernews/cloudmonitor_exporter:${{ steps.vars.outputs.tag }} bonniernews/cloudmonitor_exporter:latest
