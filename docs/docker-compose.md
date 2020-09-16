@@ -10,7 +10,9 @@ Docker-compose can be used to setup an small stack with prometheus/grafana/hapro
 `git clone https://github.com/ExpressenAB/cloudmonitor_exporter.git`
 * Create self-signed certificate by running setup.sh
 ```
-> cd cloudmonitor_exporter/setup
+> cd cloudmonitor_exporter
+> make docker
+> cd setup
 > ./setup.sh
 This will generate a self-signed certificate to use with cloudmonitor_exporter
 Enter companyname for certificate:
