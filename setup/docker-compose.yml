@@ -1,7 +1,8 @@
-version: '2'
+---
+version: '3'
 volumes:
-    prometheus_data: {}
-    grafana_data: {}
+  prometheus_data: {}
+  grafana_data: {}
 
 services:
   prometheus:
@@ -11,15 +12,15 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus_data:/prometheus
     command:
-      - '-config.file=/etc/prometheus/prometheus.yml'
-      - '-storage.local.path=/prometheus'
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
     expose:
       - 9090
     links:
       - cloudmonitor:cloudmonitor
     ports:
       - 9090:9090
-  
+
   grafana:
     image: grafana/grafana
     depends_on:
@@ -47,5 +48,4 @@ services:
     expose:
       - 9143
     ports:
-     - "9143:9143"
-
+      - "9143:9143"
